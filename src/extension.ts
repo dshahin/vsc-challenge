@@ -14,6 +14,23 @@ export function activate(context: vscode.ExtensionContext) {
     // This line of code will only be executed once when your extension is activated
     console.log('Congratulations, your extension "goodbye-world" is now active!');
 
+    // create a decorator type that we use to decorate small numbers
+	const markovDecorationType = vscode.window.createTextEditorDecorationType({
+		borderWidth: '2px',
+		borderStyle: 'solid',
+        color: 'pink',
+		overviewRulerColor: 'red',
+		overviewRulerLane: vscode.OverviewRulerLane.Right,
+		light: {
+			// this color will be used in light color themes
+			borderColor: 'red'
+		},
+		dark: {
+			// this color will be used in dark color themes
+			borderColor: 'orange'
+		}
+	});
+
     // The command has been defined in the package.json file
     // Now provide the implementation of the command with  registerCommand
     // The commandId parameter must match the command field in package.json
@@ -32,9 +49,16 @@ export function activate(context: vscode.ExtensionContext) {
             var output =  markov.make_sentence(input);
 
             console.log(output);
-            output = "\n\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n" + output + "\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n";
+            output = "\n"+output+"\n";
+            // output = "\n\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n" + 
+            //         output + "\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n";
             applyEdit (editor, selection, output);
-        }
+
+            const startPos = new vscode.Position(selection.end.line+1, 0);
+			const endPos = new vscode.Position(selection.end.line+1,output.length);
+			const decoration = { range: new vscode.Range(startPos, endPos), hoverMessage: 'Markov, Fool! ****' };
+            editor.setDecorations(markovDecorationType,[decoration]);
+    }
         
     });
 
@@ -81,6 +105,8 @@ function applyEdit (vsEditor, coords, content){
     var edit = setEditFactory(vsDocument._uri, coords, content);
     vscode.workspace.applyEdit(edit);
 }
+
+
 
 // this method is called when your extension is deactivated
 export function deactivate() {
